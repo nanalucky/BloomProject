@@ -37,7 +37,13 @@ public class BloomObject : MonoBehaviour
         {
             MaterialPropertyBlock materialProperties = new MaterialPropertyBlock();
             renderer.GetPropertyBlock(materialProperties);
-            materialProperties.SetFloat("_BloomRange", range);
+
+            // transfer range[0, 5] to _BloomFactor[0.2f, 1]
+            materialProperties.SetFloat("_BloomFactor", range * 0.16f + 0.2f);
+
+            if (renderer.sharedMaterial.GetTexture("_MainTex"))
+                materialProperties.SetTexture("_MainTex", renderer.sharedMaterial.GetTexture("_MainTex"));
+
             renderer.SetPropertyBlock(materialProperties);
         }
     }

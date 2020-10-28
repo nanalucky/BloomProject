@@ -48,9 +48,6 @@ namespace UnityEngine.Rendering.Universal
 
             [Reload("Shaders/Utils/FallbackError.shader")]
             public Shader fallbackErrorPS;
-
-            [Reload("Shaders/Utils/BloomMask.shader")]
-            public Shader bloomMaskPS;
         }
 
         [Reload("Runtime/Data/PostProcessData.asset")]

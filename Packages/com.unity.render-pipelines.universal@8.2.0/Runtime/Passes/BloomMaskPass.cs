@@ -1,11 +1,9 @@
-﻿using System.Collections.Generic;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.Rendering;
-using UnityEngine.Scripting.APIUpdating;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine.Experimental.Rendering;
 
-namespace UnityEngine.Experimental.Rendering.Universal
+namespace UnityEngine.Rendering.Universal
 {
-    [MovedFrom("UnityEngine.Experimental.Rendering.LWRP")]
     public class BloomMaskPass : ScriptableRenderPass
     {
         public static int bloomLayer = 10;
@@ -14,21 +12,31 @@ namespace UnityEngine.Experimental.Rendering.Universal
         const string m_ProfilerTag = "Bloom Mask";
         ProfilingSampler m_ProfilingSampler;
 
-
-        Material overrideMaterial { get; set; }
-        int overrideMaterialPassIndex { get; set; }
+        Material m_BloomMaskMaterial;
 
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
         RenderStateBlock m_RenderStateBlock;
-        RenderTargetHandle m_BloomMask;
+        RenderTargetHandle m_Destination;
+        RenderTextureDescriptor m_RenderTextureDescriptor;
 
-        public BloomMaskPass(string[] shaderTags, Material bloomMaskMaterial)
+        public BloomMaskPass(string[] shaderTags, PostProcessData data)
         {
             m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
             this.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
-            this.overrideMaterial = bloomMaskMaterial;
-            this.overrideMaterialPassIndex = 0;
+
+            Material Load(Shader shader)
+            {
+                if (shader == null)
+                {
+                    Debug.LogError($"Missing shader. {GetType().DeclaringType.Name} render pass will not execute. Check for missing reference in the renderer resources.");
+                    return null;
+                }
+
+                return CoreUtils.CreateEngineMaterial(shader);
+            }
+
+            m_BloomMaskMaterial = Load(data.shaders.bloomMaskPS);
             m_FilteringSettingsOpaque = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask(LayerMask.LayerToName(bloomLayer)));
             m_FilteringSettingsTransparent = new FilteringSettings(RenderQueueRange.transparent, LayerMask.GetMask(LayerMask.LayerToName(bloomLayer)));
 
@@ -45,58 +53,62 @@ namespace UnityEngine.Experimental.Rendering.Universal
             }
 
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
-            m_CameraSettings = cameraSettings;
+        }
 
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle destination)
+        {
+            m_RenderTextureDescriptor = baseDescriptor;
+            m_RenderTextureDescriptor.depthBufferBits = 0;
+            m_RenderTextureDescriptor.msaaSamples = 1;
+            m_RenderTextureDescriptor.graphicsFormat = RenderingUtils.SupportsGraphicsFormat(GraphicsFormat.R8_UNorm, FormatUsage.Linear | FormatUsage.Render)
+                ? GraphicsFormat.R8_UNorm
+                : GraphicsFormat.B8G8R8A8_UNorm;
+
+            m_Destination = destination;
+        }
+
+        public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
+        {
+            cmd.GetTemporaryRT(m_Destination.id, m_RenderTextureDescriptor, FilterMode.Bilinear);
+
+            RenderTargetIdentifier identifier = m_Destination.Identifier();
+            ConfigureTarget(identifier);
+            ConfigureClear(ClearFlag.All, Color.black);
         }
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
-            SortingCriteria sortingCriteria = (renderQueueType == RenderQueueType.Transparent)
-                ? SortingCriteria.CommonTransparent
-                : renderingData.cameraData.defaultOpaqueSortFlags;
-
-            DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteria);
-            drawingSettings.overrideMaterial = overrideMaterial;
-            drawingSettings.overrideMaterialPassIndex = overrideMaterialPassIndex;
-
-            ref CameraData cameraData = ref renderingData.cameraData;
-            Camera camera = cameraData.camera;
-
-            // In case of camera stacking we need to take the viewport rect from base camera
-            Rect pixelRect = renderingData.cameraData.pixelRect;
-            float cameraAspect = (float)pixelRect.width / (float)pixelRect.height;
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
-                if (m_CameraSettings.overrideCamera && cameraData.isStereoEnabled)
-                    Debug.LogWarning("RenderObjects pass is configured to override camera matrices. While rendering in stereo camera matrices cannot be overriden.");
+                ref CameraData cameraData = ref renderingData.cameraData;
 
-                if (m_CameraSettings.overrideCamera && !cameraData.isStereoEnabled)
-                {
-                    Matrix4x4 projectionMatrix = Matrix4x4.Perspective(m_CameraSettings.cameraFieldOfView, cameraAspect,
-                        camera.nearClipPlane, camera.farClipPlane);
-                    projectionMatrix = GL.GetGPUProjectionMatrix(projectionMatrix, cameraData.IsCameraProjectionMatrixFlipped());
-
-                    Matrix4x4 viewMatrix = cameraData.GetViewMatrix();
-                    Vector4 cameraTranslation = viewMatrix.GetColumn(3);
-                    viewMatrix.SetColumn(3, cameraTranslation + m_CameraSettings.offset);
-
-                    RenderingUtils.SetViewAndProjectionMatrices(cmd, viewMatrix, projectionMatrix, false);
-                }
-
-                context.ExecuteCommandBuffer(cmd);
-                cmd.Clear();
-
-                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettings,
+                SortingCriteria sortingCriteriaOpaque = renderingData.cameraData.defaultOpaqueSortFlags;
+                DrawingSettings drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteriaOpaque);
+                drawingSettings.overrideMaterial = m_BloomMaskMaterial;
+                drawingSettings.overrideMaterialPassIndex = 0;
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettingsOpaque,
                     ref m_RenderStateBlock);
 
-                if (m_CameraSettings.overrideCamera && m_CameraSettings.restoreCamera && !cameraData.isStereoEnabled)
-                {
-                    RenderingUtils.SetViewAndProjectionMatrices(cmd, cameraData.GetViewMatrix(), cameraData.GetGPUProjectionMatrix(), false);
-                }
+
+                SortingCriteria sortingCriteriaTransparent = SortingCriteria.CommonTransparent;
+                drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteriaTransparent);
+                drawingSettings.overrideMaterial = m_BloomMaskMaterial;
+                drawingSettings.overrideMaterialPassIndex = 1;
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettingsTransparent,
+                    ref m_RenderStateBlock);
             }
+
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+        }
+
+        public override void FrameCleanup(CommandBuffer cmd)
+        {
+            if (cmd == null)
+                throw new ArgumentNullException("cmd");
+
+            cmd.ReleaseTemporaryRT(m_Destination.id);
         }
     }
 }

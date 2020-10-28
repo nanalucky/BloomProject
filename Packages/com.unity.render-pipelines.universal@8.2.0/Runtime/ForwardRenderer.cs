@@ -22,6 +22,7 @@ namespace UnityEngine.Rendering.Universal
         CopyColorPass m_CopyColorPass;
         TransparentSettingsPass m_TransparentSettingsPass;
         DrawObjectsPass m_RenderTransparentForwardPass;
+        BloomMaskPass m_BloomMaskPass;
         InvokeOnRenderObjectCallbackPass m_OnRenderObjectCallbackPass;
         PostProcessPass m_PostProcessPass;
         PostProcessPass m_FinalPostProcessPass;
@@ -40,6 +41,7 @@ namespace UnityEngine.Rendering.Universal
         RenderTargetHandle m_OpaqueColor;
         RenderTargetHandle m_AfterPostProcessColor;
         RenderTargetHandle m_ColorGradingLut;
+        RenderTargetHandle m_BloomMask;
 
         ForwardLights m_ForwardLights;
         StencilState m_DefaultStencilState;
@@ -48,7 +50,6 @@ namespace UnityEngine.Rendering.Universal
         Material m_CopyDepthMaterial;
         Material m_SamplingMaterial;
         Material m_ScreenspaceShadowsMaterial;
-        Material m_BloomMaskMaterial;
 
         public ForwardRenderer(ForwardRendererData data) : base(data)
         {
@@ -56,7 +57,6 @@ namespace UnityEngine.Rendering.Universal
             m_CopyDepthMaterial = CoreUtils.CreateEngineMaterial(data.shaders.copyDepthPS);
             m_SamplingMaterial = CoreUtils.CreateEngineMaterial(data.shaders.samplingPS);
             m_ScreenspaceShadowsMaterial = CoreUtils.CreateEngineMaterial(data.shaders.screenSpaceShadowPS);
-            m_BloomMaskMaterial = CoreUtils.CreateEngineMaterial(data.shaders.bloomMaskPS);
 
             StencilStateData stencilData = data.defaultStencilState;
             m_DefaultStencilState = StencilState.defaultValue;
@@ -78,6 +78,7 @@ namespace UnityEngine.Rendering.Universal
             m_CopyColorPass = new CopyColorPass(RenderPassEvent.AfterRenderingSkybox, m_SamplingMaterial);
             m_TransparentSettingsPass = new TransparentSettingsPass(RenderPassEvent.BeforeRenderingTransparents, data.shadowTransparentReceive);
             m_RenderTransparentForwardPass = new DrawObjectsPass("Render Transparents", false, RenderPassEvent.BeforeRenderingTransparents, RenderQueueRange.transparent, data.transparentLayerMask, m_DefaultStencilState, stencilData.stencilReference);
+            m_BloomMaskPass = new BloomMaskPass(null, data.postProcessData);
             m_OnRenderObjectCallbackPass = new InvokeOnRenderObjectCallbackPass(RenderPassEvent.BeforeRenderingPostProcessing);
             m_PostProcessPass = new PostProcessPass(RenderPassEvent.BeforeRenderingPostProcessing, data.postProcessData, m_BlitMaterial);
             m_FinalPostProcessPass = new PostProcessPass(RenderPassEvent.AfterRendering + 1, data.postProcessData, m_BlitMaterial);
@@ -96,6 +97,7 @@ namespace UnityEngine.Rendering.Universal
             m_OpaqueColor.Init("_CameraOpaqueTexture");
             m_AfterPostProcessColor.Init("_AfterPostProcessTexture");
             m_ColorGradingLut.Init("_InternalGradingLut");
+            m_BloomMask.Init("_BloomMask");
             m_ForwardLights = new ForwardLights();
 
             supportedRenderingFeatures = new RenderingFeatures()
@@ -113,7 +115,6 @@ namespace UnityEngine.Rendering.Universal
             CoreUtils.Destroy(m_CopyDepthMaterial);
             CoreUtils.Destroy(m_SamplingMaterial);
             CoreUtils.Destroy(m_ScreenspaceShadowsMaterial);
-            CoreUtils.Destroy(m_BloomMaskMaterial);
         }
 
         /// <inheritdoc />
@@ -278,6 +279,18 @@ namespace UnityEngine.Rendering.Universal
             }
 
             EnqueuePass(m_RenderTransparentForwardPass);
+
+            if(applyPostProcessing)
+            {
+                var stack = VolumeManager.instance.stack;
+                var bloom = stack.GetComponent<Bloom>();
+                if (bloom && bloom.IsActive())
+                {
+                    m_BloomMaskPass.Setup(cameraTargetDescriptor, m_BloomMask);
+                    EnqueuePass(m_BloomMaskPass);
+                }
+            }
+
             EnqueuePass(m_OnRenderObjectCallbackPass);
 
             bool lastCameraInTheStack = cameraData.resolveFinalTarget;
