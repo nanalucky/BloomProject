@@ -16,6 +16,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
 
         TEXTURE2D_X(_MainTex);
         TEXTURE2D_X(_MainTexLowMip);
+        TEXTURE2D_X(_BloomMaskTex);
 
         float4 _MainTex_TexelSize;
         float4 _MainTexLowMip_TexelSize;
@@ -60,6 +61,10 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             UNITY_SETUP_STEREO_EYE_INDEX_POST_VERTEX(input);
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
             half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv).xyz;
+            float mask = SAMPLE_TEXTURE2D_X(_BloomMaskTex, sampler_LinearClamp, uv).r;
+            float range = (mask - 0.2f) / 0.16f;
+            if (range < 0)
+                range = 1.0f;
 
         #if UNITY_COLORSPACE_GAMMA
             color = SRGBToLinear(color);
@@ -69,7 +74,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             color = min(ClampMax, color);
 
             // Thresholding
-            half brightness = Max3(color.r, color.g, color.b);
+            half brightness = Max3(color.r, color.g, color.b) * range;
             half softness = clamp(brightness - Threshold + ThresholdKnee, 0.0, 2.0 * ThresholdKnee);
             softness = (softness * softness) / (4.0 * ThresholdKnee + 1e-4);
             half multiplier = max(brightness - Threshold, softness) / max(brightness, 1e-4);

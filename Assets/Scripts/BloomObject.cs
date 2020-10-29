@@ -1,13 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 
-public class BloomObject : MonoBehaviour
+public class BloomObject : BloomObjectInterface
 {
     [Range(0.0f, 5.0f)]
     public float range = 1.0f;
-
-    private int originLayer;
 
     private void copyParam(BloomObject bo)
     {
@@ -55,16 +54,5 @@ public class BloomObject : MonoBehaviour
     void Start()
     {
         
-    }
-
-    public void beforeRender(int bloomLayer)
-    {
-        originLayer = gameObject.layer;
-        gameObject.layer = bloomLayer;
-    }
-
-    public void afterRender()
-    {
-        gameObject.layer = originLayer;
-    }
+    }   
 }

@@ -20,6 +20,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
         readonly RenderTargetHandle k_DepthTextureHandle;
         readonly RenderTargetHandle k_AfterPostProcessColorHandle;
         readonly RenderTargetHandle k_ColorGradingLutHandle;
+        readonly RenderTargetHandle k_BloomMaskHandle;
 
         Material m_BlitMaterial;
 
@@ -46,6 +47,7 @@ namespace UnityEngine.Experimental.Rendering.Universal
             k_DepthTextureHandle.Init("_CameraDepthAttachment");
             k_AfterPostProcessColorHandle.Init("_AfterPostProcessTexture");
             k_ColorGradingLutHandle.Init("_InternalGradingLut");
+            k_BloomMaskHandle.Init("_BloomMask");
 
             m_Renderer2DData = data;
 
@@ -188,8 +190,9 @@ namespace UnityEngine.Experimental.Rendering.Universal
                     postProcessDestHandle,
                     depthTargetHandle,
                     k_ColorGradingLutHandle,
+                    k_BloomMaskHandle,
                     requireFinalPostProcessPass,
-                    postProcessDestHandle == RenderTargetHandle.CameraTarget);
+                    postProcessDestHandle == RenderTargetHandle.CameraTarget); ;
 
                 EnqueuePass(m_PostProcessPass);
                 colorTargetHandle = postProcessDestHandle;

@@ -25,6 +25,7 @@ namespace UnityEngine.Rendering.Universal.Internal
         RenderTargetHandle m_Destination;
         RenderTargetHandle m_Depth;
         RenderTargetHandle m_InternalLut;
+        RenderTargetHandle m_BloomMask;
 
         const string k_RenderPostProcessingTag = "Render PostProcessing Effects";
         const string k_RenderFinalPostProcessingTag = "Render Final PostProcessing Pass";
@@ -123,13 +124,14 @@ namespace UnityEngine.Rendering.Universal.Internal
 
         public void Cleanup() => m_Materials.Cleanup();
 
-        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, bool hasFinalPass, bool enableSRGBConversion)
+        public void Setup(in RenderTextureDescriptor baseDescriptor, in RenderTargetHandle source, in RenderTargetHandle destination, in RenderTargetHandle depth, in RenderTargetHandle internalLut, in RenderTargetHandle bloomMask, bool hasFinalPass, bool enableSRGBConversion)
         {
             m_Descriptor = baseDescriptor;
             m_Source = source;
             m_Destination = destination;
             m_Depth = depth;
             m_InternalLut = internalLut;
+            m_BloomMask = bloomMask;
             m_IsFinalPass = false;
             m_HasFinalPass = hasFinalPass;
             m_EnableSRGBConversionIfNeeded = enableSRGBConversion;
@@ -819,6 +821,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             bloomMaterial.SetVector(ShaderConstants._Params, new Vector4(scatter, clamp, threshold, thresholdKnee));
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.BloomHQ, m_Bloom.highQualityFiltering.value);
             CoreUtils.SetKeyword(bloomMaterial, ShaderKeywordStrings.UseRGBM, m_UseRGBM);
+            cmd.SetGlobalTexture(ShaderConstants._BloomMaskTex, m_BloomMask.id);
 
             // Prefilter
             var desc = GetStereoCompatibleDescriptor(tw, th, m_DefaultHDRFormat);
@@ -1179,6 +1182,7 @@ namespace UnityEngine.Rendering.Universal.Internal
             public static readonly int _ColorTexture       = Shader.PropertyToID("_ColorTexture");
             public static readonly int _Params             = Shader.PropertyToID("_Params");
             public static readonly int _MainTexLowMip      = Shader.PropertyToID("_MainTexLowMip");
+            public static readonly int _BloomMaskTex       = Shader.PropertyToID("_BloomMaskTex");
             public static readonly int _Bloom_Params       = Shader.PropertyToID("_Bloom_Params");
             public static readonly int _Bloom_RGBM         = Shader.PropertyToID("_Bloom_RGBM");
             public static readonly int _Bloom_Texture      = Shader.PropertyToID("_Bloom_Texture");

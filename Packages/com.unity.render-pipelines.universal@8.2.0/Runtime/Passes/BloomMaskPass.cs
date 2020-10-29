@@ -1,12 +1,30 @@
-﻿using System;
+﻿using JetBrains.Annotations;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Experimental.Rendering;
 
 namespace UnityEngine.Rendering.Universal
 {
+    public class BloomObjectInterface: MonoBehaviour
+    {
+        int originLayer;
+
+        public void beforeRender(int bloomMaskLayer)
+        {
+            originLayer = gameObject.layer;
+            gameObject.layer = bloomMaskLayer;
+        }
+
+        public void afterRender()
+        {
+            gameObject.layer = originLayer;
+        }
+    }
+
+
     public class BloomMaskPass : ScriptableRenderPass
     {
-        public static int bloomLayer = 10;
+        public static string bloomMaskLayerName = "BloomMask";
         FilteringSettings m_FilteringSettingsOpaque;
         FilteringSettings m_FilteringSettingsTransparent;
         const string m_ProfilerTag = "Bloom Mask";
@@ -23,7 +41,7 @@ namespace UnityEngine.Rendering.Universal
         public BloomMaskPass(string[] shaderTags, PostProcessData data)
         {
             m_ProfilingSampler = new ProfilingSampler(m_ProfilerTag);
-            this.renderPassEvent = RenderPassEvent.AfterRenderingTransparents;
+            this.renderPassEvent = RenderPassEvent.AfterRenderingSkybox;
 
             Material Load(Shader shader)
             {
@@ -37,8 +55,8 @@ namespace UnityEngine.Rendering.Universal
             }
 
             m_BloomMaskMaterial = Load(data.shaders.bloomMaskPS);
-            m_FilteringSettingsOpaque = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask(LayerMask.LayerToName(bloomLayer)));
-            m_FilteringSettingsTransparent = new FilteringSettings(RenderQueueRange.transparent, LayerMask.GetMask(LayerMask.LayerToName(bloomLayer)));
+            m_FilteringSettingsOpaque = new FilteringSettings(RenderQueueRange.opaque, LayerMask.GetMask(bloomMaskLayerName));
+            m_FilteringSettingsTransparent = new FilteringSettings(RenderQueueRange.transparent, LayerMask.GetMask(bloomMaskLayerName));
 
             if (shaderTags != null && shaderTags.Length > 0)
             {
@@ -78,6 +96,14 @@ namespace UnityEngine.Rendering.Universal
 
         public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
         {
+            int layer = LayerMask.NameToLayer(bloomMaskLayerName);
+            BloomObjectInterface[] maskObjects = Object.FindObjectsOfType<BloomObjectInterface>();
+            if(maskObjects.Length > 0)
+            {
+                foreach (BloomObjectInterface obj in maskObjects)
+                    obj.beforeRender(layer);
+            }
+
             CommandBuffer cmd = CommandBufferPool.Get(m_ProfilerTag);
             using (new ProfilingScope(cmd, m_ProfilingSampler))
             {
@@ -90,7 +116,6 @@ namespace UnityEngine.Rendering.Universal
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettingsOpaque,
                     ref m_RenderStateBlock);
 
-
                 SortingCriteria sortingCriteriaTransparent = SortingCriteria.CommonTransparent;
                 drawingSettings = CreateDrawingSettings(m_ShaderTagIdList, ref renderingData, sortingCriteriaTransparent);
                 drawingSettings.overrideMaterial = m_BloomMaskMaterial;
@@ -101,6 +126,12 @@ namespace UnityEngine.Rendering.Universal
 
             context.ExecuteCommandBuffer(cmd);
             CommandBufferPool.Release(cmd);
+
+            if (maskObjects.Length > 0)
+            {
+                foreach (BloomObjectInterface obj in maskObjects)
+                    obj.afterRender();
+            }
         }
 
         public override void FrameCleanup(CommandBuffer cmd)
