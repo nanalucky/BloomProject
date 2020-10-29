@@ -312,7 +312,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fromParent: 0
-  range: 0.79
+  range: 1.52
 --- !u!1 &653260035
 GameObject:
   m_ObjectHideFlags: 0
@@ -413,13 +413,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fromParent: 1
-  range: 0.79
+  range: 1.52
 --- !u!1 &1004989162 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1477202399192370, guid: 85dfab9623c67784fa7894de63cd1604, type: 3}
   m_PrefabInstance: {fileID: 1556901916}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1004989163
+--- !u!114 &1004989166
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -432,7 +432,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fromParent: 0
-  range: 1.55
+  range: 2.76
 --- !u!1 &1145444333
 GameObject:
   m_ObjectHideFlags: 0
@@ -539,7 +539,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fromParent: 1
-  range: 0.79
+  range: 1.52
 --- !u!1 &1458322688
 GameObject:
   m_ObjectHideFlags: 0
@@ -759,7 +759,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fromParent: 1
-  range: 0.79
+  range: 1.52
 --- !u!1 &1687258581
 GameObject:
   m_ObjectHideFlags: 0
@@ -934,7 +934,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fromParent: 1
-  range: 0.79
+  range: 1.52
 --- !u!1 &1904166338
 GameObject:
   m_ObjectHideFlags: 0

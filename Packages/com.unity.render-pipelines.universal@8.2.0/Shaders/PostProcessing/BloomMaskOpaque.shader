@@ -1,4 +1,4 @@
-Shader "Universal Render Pipeline/BloomMaskOpaque"
+Shader "Hidden/Universal Render Pipeline/BloomMaskOpaque"
 {
     Properties
     {
