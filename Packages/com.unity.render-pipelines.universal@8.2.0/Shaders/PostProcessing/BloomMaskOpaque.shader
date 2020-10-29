@@ -7,7 +7,7 @@ Shader "Universal Render Pipeline/BloomMaskOpaque"
 
     SubShader
     {
-        Tags { "Queue" = "Geometry" IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" }
+        Tags { "Queue" = "Geometry" "IgnoreProjector" = "True" "RenderPipeline" = "UniversalPipeline" }
         LOD 100
 
         Pass

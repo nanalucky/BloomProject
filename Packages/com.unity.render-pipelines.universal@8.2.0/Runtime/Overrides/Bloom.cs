@@ -5,6 +5,9 @@ namespace UnityEngine.Rendering.Universal
     [Serializable, VolumeComponentMenu("Post-processing/Bloom")]
     public sealed class Bloom : VolumeComponent, IPostProcessComponent
     {
+        [Tooltip("Specify layers to customize bloom range")]
+        public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
+
         [Tooltip("Filters out pixels under this level of brightness. Value is in gamma-space.")]
         public MinFloatParameter threshold = new MinFloatParameter(0.9f, 0f);
 

@@ -22,7 +22,8 @@ MonoBehaviour:
     lutBuilderLdrPS: {fileID: 4800000, guid: 65df88701913c224d95fc554db28381a, type: 3}
     lutBuilderHdrPS: {fileID: 4800000, guid: ec9fec698a3456d4fb18cf8bacb7a2bc, type: 3}
     bloomPS: {fileID: 4800000, guid: 5f1864addb451f54bae8c86d230f736e, type: 3}
-    bloomMaskPS: {fileID: 4800000, guid: 0a83dfb4413fb4c3bbb0f91e3cbe64da, type: 3}
+    bloomMaskOpaquePS: {fileID: 4800000, guid: b10ecd5f583fbe3468e148cd8e8a32cb, type: 3}
+    bloomMaskTransparentPS: {fileID: 4800000, guid: b3369ed93b432af429c7585152968117, type: 3}
     uberPostPS: {fileID: 4800000, guid: e7857e9d0c934dc4f83f270f8447b006, type: 3}
     finalPostPassPS: {fileID: 4800000, guid: c49e63ed1bbcb334780a3bd19dfed403, type: 3}
   textures:

@@ -1,30 +1,51 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 
-public class BloomObject : BloomObjectInterface
+[ExecuteInEditMode]
+public class BloomObject : MonoBehaviour
 {
+    public bool fromParent = false;
+
     [Range(0.0f, 5.0f)]
     public float range = 1.0f;
+ 
+
+    private void Awake()
+    {
+        UpdateRange();
+    }
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+    }
 
     private void copyParam(BloomObject bo)
     {
         range = bo.range;
     }
 
-    private void Awake()
+    void UpdateRange()
     {
         // add BloomObject to child
-        Transform [] children = GetComponentsInChildren<Transform>(true);
-        if(children.Length > 1)
+        Transform[] children = GetComponentsInChildren<Transform>(true);
+        if (children.Length > 1)
         {
-            foreach (Transform child in children)
+            for(int i = 1; i < children.Length; ++i)
             {
-                if (!child.GetComponent<BloomObject>())
+                Transform child = children[i];
+                BloomObject bo = child.GetComponent<BloomObject>();
+                if(!bo)
                 {
-                    BloomObject boInParent = child.GetComponentInParent<BloomObject>();
-                    BloomObject bo = child.gameObject.AddComponent<BloomObject>();
+                    bo = child.gameObject.AddComponent<BloomObject>();
+                    bo.fromParent = true;
+                }
+
+                if (bo && bo.fromParent)
+                {
+                    BloomObject boInParent = child.parent.GetComponentInParent<BloomObject>();
                     bo.copyParam(boInParent);
                 }
             }
@@ -32,7 +53,7 @@ public class BloomObject : BloomObjectInterface
 
         // save params to renderer's PropertyBlock
         Renderer renderer = GetComponent<Renderer>();
-        if(renderer)
+        if (renderer)
         {
             MaterialPropertyBlock materialProperties = new MaterialPropertyBlock();
             renderer.GetPropertyBlock(materialProperties);
@@ -48,11 +69,13 @@ public class BloomObject : BloomObjectInterface
 
             renderer.SetPropertyBlock(materialProperties);
         }
+
     }
 
-    // Start is called before the first frame update
-    void Start()
+#if UNITY_EDITOR
+    private void Update()
     {
-        
-    }   
+        UpdateRange();
+    }
+#endif
 }
