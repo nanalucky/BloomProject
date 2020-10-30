@@ -434,7 +434,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   fromParent: 0
-  range: 1
+  range: 4.92
   textureMultiplierRGBA: {x: 1, y: 1, z: 0, w: 0}
 --- !u!1 &1145444333
 GameObject:
