@@ -9,6 +9,7 @@ public class BloomObject : MonoBehaviour
 
     [Range(0.0f, 5.0f)]
     public float range = 1.0f;
+    public Vector4 textureMultiplierRGBA = new Vector4(0.0f, 0.0f, 0.0f, 1.0f); 
  
 
     private void Awake()
@@ -25,6 +26,7 @@ public class BloomObject : MonoBehaviour
     private void copyParam(BloomObject bo)
     {
         range = bo.range;
+        textureMultiplierRGBA = bo.textureMultiplierRGBA;
     }
 
     void UpdateRange()
@@ -60,11 +62,14 @@ public class BloomObject : MonoBehaviour
 
             // transfer range[0, 5] to _BloomFactor[0.2f, 1]
             materialProperties.SetFloat("_BloomFactor", range * 0.16f + 0.2f);
+            materialProperties.SetVector("_BaseMapMultiplier", textureMultiplierRGBA);
 
             if (renderer.sharedMaterial)
             {
-                materialProperties.SetTexture("_BaseMap", renderer.sharedMaterial.GetTexture("_BaseMap"));
-                materialProperties.SetColor("_BaseColor", renderer.sharedMaterial.GetColor("_BaseColor"));
+                if(renderer.sharedMaterial.HasProperty("_BaseMap"))
+                    materialProperties.SetTexture("_BaseMap", renderer.sharedMaterial.GetTexture("_BaseMap"));
+                if(renderer.sharedMaterial.HasProperty("_BaseColor"))
+                    materialProperties.SetColor("_BaseColor", renderer.sharedMaterial.GetColor("_BaseColor"));
             }
 
             renderer.SetPropertyBlock(materialProperties);
@@ -78,4 +83,10 @@ public class BloomObject : MonoBehaviour
         UpdateRange();
     }
 #endif
+
+    private void OnDisable()
+    {
+        range = 1.0f;
+        UpdateRange();
+    }
 }

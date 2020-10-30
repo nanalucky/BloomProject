@@ -3,6 +3,7 @@ Shader "Hidden/Universal Render Pipeline/BloomMaskTransparent"
     Properties
     {
         [MainTexture] _BaseMap("Texture", 2D) = "white" {}
+        [TextureMultiplier]   _BaseMapMultiplier("BaseMap Channel Multiplier(RGBA)", Vector) = (0, 0, 0, 1)
         [MainColor]   _BaseColor("Color", Color) = (1, 1, 1, 1)
         _BloomFactor ("Bloom Factor", Float) = 0
     }
@@ -36,6 +37,7 @@ Shader "Hidden/Universal Render Pipeline/BloomMaskTransparent"
                 // can use it in the fragment shader.
                 float4 _BaseMap_ST;
                 half4 _BaseColor;
+                float4 _BaseMapMultiplier;
                 float _BloomFactor;        
             CBUFFER_END
 
@@ -76,8 +78,10 @@ Shader "Hidden/Universal Render Pipeline/BloomMaskTransparent"
 
                 half2 uv = input.uv;
                 half4 texColor = SAMPLE_TEXTURE2D(_BaseMap, sampler_BaseMap, uv);
-                half alpha = _BloomFactor * texColor.a * _BaseColor.a;
-                return half4(alpha, 0, 0, 0);
+                half alpha = _BaseColor.a * dot(texColor.rgba, _BaseMapMultiplier);
+                clip(alpha - 0.1f);
+
+                return half4(_BloomFactor, 0, 0, 0);
             }
             ENDHLSL
 
