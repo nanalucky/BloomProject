@@ -51,17 +51,17 @@ MonoBehaviour:
   active: 1
   m_AdvancedMode: 0
   layerMask:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value:
       serializedVersion: 2
-      m_Bits: 4294967295
+      m_Bits: 1024
   threshold:
-    m_OverrideState: 0
+    m_OverrideState: 1
     m_Value: 0.9
     min: 0
   intensity:
-    m_OverrideState: 0
-    m_Value: 0
+    m_OverrideState: 1
+    m_Value: 1.26
     min: 0
   scatter:
     m_OverrideState: 0

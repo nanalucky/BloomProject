@@ -3,10 +3,9 @@ Shader "Hidden/Universal Render Pipeline/BloomMaskTransparent"
     Properties
     {
         [MainTexture] _BaseMap("Texture", 2D) = "white" {}
-        [TextureMultiplier]   _BaseMapMultiplier("BaseMap Channel Multiplier(RGBA)", Vector) = (0, 0, 0, 1)
-        [MainColor]   _BaseColor("Color", Color) = (1, 1, 1, 1)
+        [MainColor] _BaseColor("Color", Color) = (1, 1, 1, 1)
         _BloomFactor ("Bloom Factor", Float) = 0
-        _Cull("Cull", Float) = 2.0
+        _BaseMapMultiplier("BaseMap Channel Multiplier(RGBA)", Vector) = (0, 0, 0, 1)
     }
 
     SubShader
@@ -18,8 +17,6 @@ Shader "Hidden/Universal Render Pipeline/BloomMaskTransparent"
         {
             Name "Bloom Mask Transparent"
             Tags{"LightMode" = "UniversalForward"}
-
-            Cull [_Cull]
 
             HLSLPROGRAM
             // Required to compile gles 2.0 with standard srp library
@@ -42,7 +39,6 @@ Shader "Hidden/Universal Render Pipeline/BloomMaskTransparent"
                 half4 _BaseColor;
                 float4 _BaseMapMultiplier;
                 float _BloomFactor;
-                float _Cull;
             CBUFFER_END
 
             struct Attributes

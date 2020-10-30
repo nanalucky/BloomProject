@@ -2,13 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public enum RenderFace
-{
-    Front = 2,
-    Back = 1,
-    Both = 0
-};
-
 
 [ExecuteInEditMode]
 public class BloomObject : MonoBehaviour
@@ -18,8 +11,6 @@ public class BloomObject : MonoBehaviour
     [Range(0.0f, 5.0f)]
     public float range = 1.0f;
     public Vector4 textureMultiplierRGBA = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-    public RenderFace renderFace = RenderFace.Front;
- 
 
     private void Awake()
     {
@@ -36,7 +27,6 @@ public class BloomObject : MonoBehaviour
     {
         range = bo.range;
         textureMultiplierRGBA = bo.textureMultiplierRGBA;
-        renderFace = bo.renderFace;
     }
 
     void UpdateRange()
@@ -73,8 +63,7 @@ public class BloomObject : MonoBehaviour
             // transfer range[0, 5] to _BloomFactor[0.2f, 1]
             materialProperties.SetFloat("_BloomFactor", range * 0.16f + 0.2f);
             materialProperties.SetVector("_BaseMapMultiplier", textureMultiplierRGBA);
-            materialProperties.SetFloat("_Cull", (float)renderFace);
-
+            
             if (renderer.sharedMaterial)
             {
                 if(renderer.sharedMaterial.HasProperty("_BaseMap"))
