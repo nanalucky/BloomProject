@@ -55,6 +55,11 @@ MonoBehaviour:
     m_Value:
       serializedVersion: 2
       m_Bits: 1024
+  layerMaskDouble:
+    m_OverrideState: 1
+    m_Value:
+      serializedVersion: 2
+      m_Bits: 2048
   threshold:
     m_OverrideState: 1
     m_Value: 0.9

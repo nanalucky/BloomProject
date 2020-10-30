@@ -8,6 +8,9 @@ namespace UnityEngine.Rendering.Universal
         [Tooltip("Specify layers to customize bloom range")]
         public LayerMaskParameter layerMask = new LayerMaskParameter(-1);
 
+        [Tooltip("Specify layers for double-sided transparent object to customize bloom range")]
+        public LayerMaskParameter layerMaskDouble = new LayerMaskParameter(0);
+
         [Tooltip("Filters out pixels under this level of brightness. Value is in gamma-space.")]
         public MinFloatParameter threshold = new MinFloatParameter(0.9f, 0f);
 

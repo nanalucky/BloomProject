@@ -9,11 +9,13 @@ namespace UnityEngine.Rendering.Universal
     {
         FilteringSettings m_FilteringSettingsOpaque;
         FilteringSettings m_FilteringSettingsTransparent;
+        FilteringSettings m_FilteringSettingsTransparentDouble;
         const string m_ProfilerTag = "Bloom Mask";
         ProfilingSampler m_ProfilingSampler;
 
         Material m_BloomMaskOpaqueMaterial;
         Material m_BloomMaskTransparentMaterial;
+        Material m_BloomMaskTransparentDoubleMaterial;
 
         List<ShaderTagId> m_ShaderTagIdList = new List<ShaderTagId>();
 
@@ -39,8 +41,10 @@ namespace UnityEngine.Rendering.Universal
 
             m_BloomMaskOpaqueMaterial = Load(data.shaders.bloomMaskOpaquePS);
             m_BloomMaskTransparentMaterial = Load(data.shaders.bloomMaskTransparentPS);
+            m_BloomMaskTransparentDoubleMaterial = Load(data.shaders.bloomMaskTransparentDoublePS);
             m_FilteringSettingsOpaque = new FilteringSettings(RenderQueueRange.opaque);
             m_FilteringSettingsTransparent = new FilteringSettings(RenderQueueRange.transparent);
+            m_FilteringSettingsTransparentDouble = new FilteringSettings(RenderQueueRange.transparent);
 
             if (shaderTags != null && shaderTags.Length > 0)
             {
@@ -57,7 +61,7 @@ namespace UnityEngine.Rendering.Universal
             m_RenderStateBlock = new RenderStateBlock(RenderStateMask.Nothing);
         }
 
-        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle destination, int layerMask)
+        public void Setup(RenderTextureDescriptor baseDescriptor, RenderTargetHandle destination, int layerMask, int layerMaskDouble)
         {
             m_RenderTextureDescriptor = baseDescriptor;
             m_RenderTextureDescriptor.depthBufferBits = 0;
@@ -70,6 +74,7 @@ namespace UnityEngine.Rendering.Universal
 
             m_FilteringSettingsOpaque.layerMask = layerMask;
             m_FilteringSettingsTransparent.layerMask = layerMask;
+            m_FilteringSettingsTransparentDouble.layerMask = layerMaskDouble;
         }
 
         public override void Configure(CommandBuffer cmd, RenderTextureDescriptor cameraTextureDescriptor)
@@ -100,6 +105,10 @@ namespace UnityEngine.Rendering.Universal
                 drawingSettings.overrideMaterial = m_BloomMaskTransparentMaterial;
                 drawingSettings.overrideMaterialPassIndex = 0;
                 context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettingsTransparent,
+                    ref m_RenderStateBlock);
+
+                drawingSettings.overrideMaterial = m_BloomMaskTransparentDoubleMaterial;
+                context.DrawRenderers(renderingData.cullResults, ref drawingSettings, ref m_FilteringSettingsTransparentDouble,
                     ref m_RenderStateBlock);
             }
 

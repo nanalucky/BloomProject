@@ -65,6 +65,9 @@ namespace UnityEngine.Rendering.Universal
             [Reload("Shaders/PostProcessing/BloomMaskTransparent.shader")]
             public Shader bloomMaskTransparentPS;
 
+            [Reload("Shaders/PostProcessing/BloomMaskTransparentDouble.shader")]
+            public Shader bloomMaskTransparentDoublePS;
+
             [Reload("Shaders/PostProcessing/UberPost.shader")]
             public Shader uberPostPS;
 

@@ -286,7 +286,7 @@ namespace UnityEngine.Rendering.Universal
                 var bloom = stack.GetComponent<Bloom>();
                 if (bloom && bloom.IsActive())
                 {
-                    m_BloomMaskPass.Setup(cameraTargetDescriptor, m_BloomMask, bloom.layerMask.value);
+                    m_BloomMaskPass.Setup(cameraTargetDescriptor, m_BloomMask, bloom.layerMask.value, bloom.layerMaskDouble.value);
                     EnqueuePass(m_BloomMaskPass);
                 }
             }
