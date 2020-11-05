@@ -62,7 +62,7 @@ Shader "Hidden/Universal Render Pipeline/Bloom"
             float2 uv = UnityStereoTransformScreenSpaceTex(input.uv);
             half3 color = SAMPLE_TEXTURE2D_X(_MainTex, sampler_LinearClamp, uv).xyz;
             float mask = SAMPLE_TEXTURE2D_X(_BloomMaskTex, sampler_LinearClamp, uv).r;
-            float range = (mask - 0.2f) / 0.16f;
+            float range = (mask - 0.2f) / 0.008f;
             if (range < 0)
                 range = 1.0f;
 

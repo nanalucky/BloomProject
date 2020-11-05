@@ -8,7 +8,7 @@ public class BloomObject : MonoBehaviour
 {
     public bool fromParent = false;
 
-    [Range(0.0f, 5.0f)]
+    [Range(0.0f, 100.0f)]
     public float range = 1.0f;
     public Vector4 textureMultiplierRGBA = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -60,8 +60,8 @@ public class BloomObject : MonoBehaviour
             MaterialPropertyBlock materialProperties = new MaterialPropertyBlock();
             renderer.GetPropertyBlock(materialProperties);
 
-            // transfer range[0, 5] to _BloomFactor[0.2f, 1]
-            materialProperties.SetFloat("_BloomFactor", range * 0.16f + 0.2f);
+            // transfer range[0, 100] to _BloomFactor[0.2f, 1]
+            materialProperties.SetFloat("_BloomFactor", range * 0.008f + 0.2f);
             materialProperties.SetVector("_BaseMapMultiplier", textureMultiplierRGBA);
             
             if (renderer.sharedMaterial)
